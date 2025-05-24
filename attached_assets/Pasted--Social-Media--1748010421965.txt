@@ -1,0 +1,164 @@
+ด้านล่างนี้คือสรุปแผนและโครงสร้างของระบบ Social Media ที่มีฟังก์ชันการสมัครสมาชิกพร้อมชำระเงิน กู้ยืมเงิน และระบบ Level (อิงจากการคืนเงินตรงเวลา) รวมทั้งหน้าตรวจสอบบัญชีโกง ทั้งหมดถูกออกแบบให้อยู่ในขอบเขตของ Firebase Free (Spark Plan) โดยมีการคิดค่าธรรมเนียมและอัตราดอกเบี้ยที่เหมาะสม พร้อมคู่มือการพัฒนาและพรอมต์คำสั่งสำหรับให้ agent ของ Replit ทำการตั้งค่าระบบให้ในขั้นตอนเดียว
+
+1. สรุปฟังก์ชันและคุณสมบัติหลักของระบบ
+
+ระบบสมัครสมาชิกและชำระเงิน
+
+ผู้ใช้สมัครสมาชิกโดยกรอกข้อมูลที่ตรวจสอบได้ (ชื่อ, เบอร์โทร, เลขบัญชี)
+
+ผู้ใช้ชำระค่าสมัคร (เช่น 100 บาท) ผ่านช่องทางที่กำหนด
+
+บัญชีที่ใช้ชำระและบัญชีที่จะใช้ยืมเงินต้องมีชื่อเดียวกัน เพื่อป้องกันการโกง
+
+หน้าพื้นฐานของระบบ Social Media
+
+หน้าฟีด (Feed): แสดงโพสต์จากเพื่อนและชุมชน
+
+หน้าโปรไฟล์ (Profile): แสดงข้อมูลส่วนตัว, จำนวนโพสต์, Level, และสถิติการคืนเงินตรงเวลา
+
+ระบบเพิ่มเพื่อน: ให้ผู้ใช้สามารถค้นหาและเพิ่มเพื่อน
+
+ระบบโพสต์และแชท: โพสต์เนื้อหาและแชทแบบ real-time
+
+ระบบยืมเงินและการคำนวณ Level
+
+ผู้ใช้ที่สมัครแล้วสามารถขอยืมเงินได้
+
+ระบบคำนวณ Level โดยอิงจากจำนวนครั้งที่คืนเงินตรงเวลาของผู้ใช้ ตัวอย่าง: • Level 1: เริ่มต้น • Level 2: คืนตรงเวลา ≥ 2 ครั้ง • Level 3: คืนตรงเวลา ≥ 5 ครั้ง • Level 4: คืนตรงเวลา ≥ 15 ครั้ง
+
+สิทธิพิเศษ/โบนัสตามระดับ เช่น วงเงินกู้ที่เพิ่มขึ้น, ดอกเบี้ยที่ต่ำลง
+
+ระบบตรวจสอบบุคคลโกง (Fraud List)
+
+บันทึกข้อมูลของผู้ที่มีประวัติปฏิบัติเสีย (ชื่อ, เบอร์, เลขบัญชี)
+
+ให้หน้าเว็บสำหรับให้ผู้ใช้สามารถเช็คข้อมูลก่อนจะตัดสินใจทำธุรกรรม
+
+การคำนวณค่าธรรมเนียมและอัตราดอกเบี้ย
+
+ค่าสมัครสมาชิกแบบคงที่ (เช่น 100 บาท)
+
+อัตราดอกเบี้ยสำหรับการกู้เงินคำนวณตามระดับความน่าเชื่อถือของผู้ใช้ ตัวอย่างการคำนวณอัตราดอกเบี้ย: • Level 4: 1% • Level 3: 2% • Level 2: 3% • Level 1: 5%
+
+ระบบแอดมินคอนโซล
+
+แอดมินสามารถปรับแต่งดอกเบี้ย ค่าสมัคร และการเพิ่มหรือลด XP ของสมาชิก
+
+การโพสต์: ผู้ที่มีสิทธิ์โพสต์ได้จะต้องมีระดับเลเวลถึงกำหนด
+
+การโพสต์ 1 ครั้งจะลด XP
+
+โพสต์จะแจ้งเตือนสำหรับทุกคน
+
+กดโพสต์: • หากมีคนกดไลค์: คนกด -1 XP, คนโพสต์ +1 XP • หากมีคนกดดิสไลค์: คนกด -2 XP, คนโพสต์ -5 XP
+
+2. เทคโนโลยีที่ใช้และข้อจำกัดบน Firebase Free (Spark Plan)
+
+Firestore Database: – ใช้เก็บข้อมูลผู้ใช้, ประวัติการกู้ยืม & คืนเงิน, โพสต์, และ Fraud List – ข้อจำกัด: 50,000 อ่าน/เขียนต่อวัน
+
+Realtime Database: – สำหรับระบบแชทแบบเรียลไทม์ – ข้อจำกัด: 100 concurrent connections
+
+Cloud Functions: – สำหรับคำนวณ Level, ตรวจสอบการชำระคืนตรงเวลา และคำนวณค่าธรรมเนียม – ข้อจำกัด: invocations และ processing time ตามที่กำหนดใน Spark Plan
+
+Firebase Hosting: – สำหรับ deploy หน้าเว็บระบบ – ข้อจำกัด: 1 GB storage, 10 GB bandwidth ต่อเดือน
+
+Firebase Authentication: – สำหรับการลงทะเบียนและยืนยันตัวตนผู้ใช้
+
+3. โครงสร้างโปรเจค (Folder Structure)
+
+project-social-lending/ ├── public/ // Front-end: หน้าเว็บ HTML, CSS, JavaScript │ ├── index.html // หน้าแรก: ฟีดโพสต์ │ ├── profile.html // หน้าโปรไฟล์ผู้ใช้ │ ├── friends.html // หน้าเพิ่ม/ค้นหาเพื่อน │ ├── chat.html // หน้าสำหรับแชทแบบ real-time │ ├── fraud.html // หน้าเช็ครายชื่อบุคคลโกง │ └── admin.html // หน้าแอดมินคอนโซล ├── functions/ // Cloud Functions สำหรับ backend │ ├── index.js // โค้ดหลักสำหรับจัดการระบบ (สมัครสมาชิก, ยืมเงิน, คำนวณ Level) │ ├── package.json // รายการ dependencies ของ Cloud Functions │ └── .eslintrc.json // การตั้งค่า linting (ถ้าจำเป็น) ├── firestore.rules // กำหนด security rules ของ Firestore ├── firebase.json // การตั้งค่าของ Firebase Hosting, Functions, ฯลฯ └── .firebaserc // ระบุ Firebase Project ID
+
+4. คู่มือการพัฒนา (Development Manual)
+
+ขั้นตอนที่ 1: ตั้งค่า Firebase Project
+
+สร้างโปรเจคใน Firebase Console
+
+เปิดใช้งานบริการที่จำเป็น:
+
+Firestore Database
+
+Realtime Database
+
+Cloud Functions
+
+Firebase Hosting
+
+Firebase Authentication
+
+ขั้นตอนที่ 2: ติดตั้ง Firebase CLI และกำหนดค่าโปรเจคในเครื่อง
+
+ติดตั้ง Firebase CLI ด้วยคำสั่ง:
+
+npm install -g firebase-tools
+
+ล็อกอินเข้าสู่ Firebase:
+
+firebase login
+
+เริ่มต้นโปรเจคด้วยคำสั่ง:
+
+firebase init
+
+เลือกบริการ: Firestore, Functions, Hosting (และสามารถเลือก Authentication ได้หากจำเป็น)
+
+กำหนดโฟลเดอร์ public สำหรับ Hosting และ functions สำหรับ Cloud Functions
+
+ขั้นตอนที่ 3: พัฒนา Cloud Functions
+
+ตัวอย่างโค้ดสำหรับคำนวณและอัปเดต Level เมื่อผู้ใช้คืนเงินตรงเวลา:
+
+// functions/index.js const functions = require("firebase-functions"); const admin = require("firebase-admin"); admin.initializeApp(); // ฟังก์ชันคำนวณและอัปเดต Level ของผู้ใช้ exports.updateUserLevel = functions.https.onCall(async (data, context) => { const uid = data.uid; const isOnTime = data.isOnTime; // true เมื่อคืนเงินตรงเวลา const userRef = admin.firestore().collection("users").doc(uid); const userDoc = await userRef.get(); if (!userDoc.exists) { throw new functions.https.HttpsError('not-found', "ไม่พบข้อมูลผู้ใช้"); } const userData = userDoc.data(); let countOnTime = userData.onTimeRepayments || 0; if (isOnTime) countOnTime += 1; // กำหนด Level ตามจำนวนคืนเงินตรงเวลา let newLevel; if (countOnTime >= 15) newLevel = 4; else if (countOnTime >= 5) newLevel = 3; else if (countOnTime >= 2) newLevel = 2; else newLevel = 1; await userRef.update({ onTimeRepayments: countOnTime, level: newLevel }); return { level: newLevel, totalOnTime: countOnTime }; });
+
+ขั้นตอนที่ 4: พัฒนา Front-end
+
+เขียนหน้าต่างๆ (เช่น index.html, profile.html, friends.html, chat.html, fraud.html, admin.html) โดยใช้ HTML, CSS และ JavaScript
+
+ใช้ Firebase SDK เพื่อติดต่อกับ Firestore และ Realtime Database
+
+ตัวอย่างการดึงข้อมูลจาก Firestore:
+
+<!-- public/profile.html --> <!DOCTYPE html> <html lang="th"> <head> <meta charset="UTF-8"> <title>โปรไฟล์ผู้ใช้</title> </head> <body> <h1>โปรไฟล์</h1> <div id="profile-info"></div> <!-- โหลด Firebase SDK --> <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script> <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script> <script> const firebaseConfig = { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID", }; firebase.initializeApp(firebaseConfig); const db = firebase.firestore(); // ดึงข้อมูลผู้ใช้จาก Firestore db.collection("users").doc("USER_ID").get().then(doc => { if(doc.exists) { document.getElementById("profile-info").innerText = JSON.stringify(doc.data()); } else { document.getElementById("profile-info").innerText = "ไม่พบข้อมูล"; } }); </script> </body> </html>
+
+ขั้นตอนที่ 5: พัฒนาหน้าตรวจสอบ Fraud List
+
+สร้าง collection ใน Firestore ชื่อ fraudList เพื่อเก็บข้อมูล (ชื่อ, เบอร์, เลขบัญชี, รายละเอียดความเสี่ยง)
+
+ออกแบบหน้า fraud.html ให้ผู้ใช้สามารถค้นหาข้อมูลดังกล่าวและแสดงคำเตือนก่อนทำธุรกรรม
+
+ขั้นตอนที่ 6: การคำนวณค่าธรรมเนียมและอัตราดอกเบี้ย
+
+ค่าสมัครสมาชิก: กำหนดเป็นจำนวนเงินคงที่ (เช่น 100 บาท) ในขณะสมัครสมาชิก
+
+ค่าธรรมเนียมการกู้เงิน & ดอกเบี้ย: คำนวณโดยใช้อัตราต่ำสุดสำหรับระดับสูงและอัตราสูงสุดสำหรับผู้ใช้ระดับเริ่มต้น ตัวอย่างฟังก์ชันคำนวณดอกเบี้ย:
+
+function calculateInterest(level, amount) { switch(level) { case 4: return amount * 0.01; // 1% case 3: return amount * 0.02; // 2% case 2: return amount * 0.03; // 3% default: return amount * 0.05; // 5% } }
+
+5. พรอมต์คำสั่งสำหรับ Replit Agent (ทำในขั้นตอนเดียวจบ)
+
+ด้านล่างนี้เป็นสคริปต์ setup-and-deploy.sh ที่คุณสามารถรันใน Replit Terminal เพื่อให้ระบบทั้งหมดถูกตั้งค่าและ deploy ไปยัง Firebase โดยอัตโนมัติ:
+
+#!/bin/bash # สคริปต์ติดตั้งและ deploy ระบบ Social Media + Lending บน Firebase Free (Spark Plan) # ขั้นตอนที่ 1: ตรวจสอบและติดตั้ง Firebase CLI (ถ้ายังไม่ได้ติดตั้ง) if ! command -v firebase &> /dev/null then echo "ติดตั้ง Firebase CLI..." npm install -g firebase-tools fi # ขั้นตอนที่ 2: ล็อกอินเข้าสู่ Firebase (จะเปิด URL ให้ทำการล็อกอิน) echo "กำลังล็อกอินเข้าสู่ Firebase..." firebase login --interactive # ขั้นตอนที่ 3: เริ่มต้นโปรเจค Firebase (ใช้ project ID ของคุณ) echo "กำลังเริ่มต้นโปรเจค Firebase..." firebase init --project YOUR_FIREBASE_PROJECT_ID <<EOF firestore functions hosting EOF # ขั้นตอนที่ 4: ติดตั้ง dependencies ในโฟลเดอร์ functions echo "ติดตั้ง dependencies ใน Cloud Functions..." cd functions npm install cd .. # ขั้นตอนที่ 5: Deploy โปรเจคไปยัง Firebase Hosting และ Cloud Functions echo "Deploy โปรเจค..." firebase deploy echo "ตั้งค่าโปรเจคเสร็จสมบูรณ์! ระบบพร้อมใช้งานแล้ว"
+
+หมายเหตุ:
+
+แทนที่ YOUR_FIREBASE_PROJECT_ID ด้วย Project ID ของ Firebase แท้จริงของคุณ
+
+ให้สคริปต์นี้มีสิทธิ์ในการรัน (chmod +x setup-and-deploy.sh) แล้วรันผ่าน Terminal ใน Replit
+
+6. สรุปภาพรวม
+
+ระบบทั้งหมด ถูกออกแบบให้รองรับฟังก์ชันพื้นฐานของโซเชียลมีเดียร่วมกับระบบการยืมเงินและการคำนวณ Level ตามการคืนเงินตรงเวลา
+
+การลงทะเบียนและชำระเงิน ถูกบังคับให้ใช้บัญชีเดียวกันในระบบ เพื่อความปลอดภัยและลดความเสี่ยงการโกง
+
+Fraud List: หน้าเช็คข้อมูลบุคคลโกงเพื่อให้ผู้ใช้ตรวจสอบก่อนทำธุรกรรม
+
+ข้อจำกัดของ Firebase Free: ระบบถูกออกแบบให้ใช้งานได้ภายในข้อจำกัด Spark Plan โดยคำนึงถึงการลดจำนวนการอ่าน/เขียนและการใช้งาน concurrent connections
+
+การคำนวณค่าธรรมเนียม: ใช้โครงสร้างแบบคงที่สำหรับค่าสมัครและอัตราดอกเบี้ยที่ปรับตามระดับผู้ใช้
+
+พรอมต์คำสั่งสำหรับ Replit Agent: มีสคริปต์เดียวที่ช่วยติดตั้งและ deploy โปรเจคได้โดยอัตโนมัติ
+
+ด้วยคู่มือและโครงสร้างดังกล่าว คุณจะมีแนวทางที่ชัดเจนในการพัฒนาระบบ ด้วยเครื่องมือและเทคนิคล่าสุดจาก Firebase ในแผนฟรี พร้อมทั้งสามารถ deploy ระบบได้ในขั้นตอนเดียวบน Replit หากมีข้อสงสัยหรือต้องการปรับปรุงเพิ่มเติม โปรดแจ้งมาได้เลยครับ!
+
