@@ -153,7 +153,7 @@ MIT License - ดูไฟล์ [LICENSE](LICENSE) สำหรับราย�
 
 ## 👥 ผู้พัฒนา
 
-- **[Your Name]** - ผู้พัฒนาหลัก
+- **[ Twitter @omgnhoy ]** - ผู้พัฒนาหลัก
 
 ## 📞 ติดต่อ
 
